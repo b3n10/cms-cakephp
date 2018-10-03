@@ -1,3 +1,10 @@
+# Important
+To prevent showing errors from other coding standards (e.g. PEAR) and only use CakePHP, issue the command below:
+
+```bash
+/vendor/bin/phpcs --config-set default_standard CakePHP
+```
+
 # CakePHP Application Skeleton
 
 [![Build Status](https://img.shields.io/travis/cakephp/app/master.svg?style=flat-square)](https://travis-ci.org/cakephp/app)
