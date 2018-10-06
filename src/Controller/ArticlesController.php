@@ -17,6 +17,17 @@ class ArticlesController extends AppController
     }
 
     /**
+     * Init
+     *
+     * @return void
+     *
+     public function initialize()
+     {
+         $this->Auth->allow(['tags']);
+     }
+     */
+
+    /**
      * Load view page
      *
      * @param string $slug URL of selected slug
@@ -42,8 +53,7 @@ class ArticlesController extends AppController
             // patchEntity updates $article using fields from $this->request->getData()
             $article = $this->Articles->patchEntity($article, $this->request->getData());
 
-            // temp user_id
-            $article->user_id = 1;
+            $article->user_id = $this->Auth->user('id');
 
             // save the changes of patchEntity
             if ($this->Articles->save($article)) {
@@ -54,9 +64,11 @@ class ArticlesController extends AppController
 
             $this->Flash->error(__('Unable to add your article!'));
         }
+        // not find a list, but return a list of tags
+        $tags = $this->Articles->Tags->find('list');
 
-        // if not POST, show view passing $article
-        $this->set(compact('article'));
+        // if not POST, show view passing $article and $tags
+        $this->set(compact('article', 'tags'));
     }
 
     /**
@@ -68,11 +80,16 @@ class ArticlesController extends AppController
      */
     public function edit($slug)
     {
-        $article = $this->Articles->findBySlug($slug)->firstOrFail();
+        $article = $this->Articles
+            ->findBySlug($slug)
+            ->contain('Tags')
+            ->firstOrFail();
 
         if ($this->request->is(['post', 'put'])) {
             // patchEntity updates $article using fields from $this->request->getData()
-            $this->Articles->patchEntity($article, $this->request->getData());
+            $this->Articles->patchEntity($article, $this->request->getData(), [
+                'accessbileFields' => ['user_id' => false]
+            ]);
 
             // save the changes of patchEntity
             if ($this->Articles->save($article)) {
@@ -83,9 +100,11 @@ class ArticlesController extends AppController
 
             $this->Flash->error(__('Unable to update your article!'));
         }
+        // not find a list, but return a list of tags
+        $tags = $this->Articles->Tags->find('list');
 
-        // if not POST, show view passing $article
-        $this->set(compact('article'));
+        // if not POST, show view passing $article and $tags
+        $this->set(compact('article', 'tags'));
     }
 
     /**
@@ -108,5 +127,49 @@ class ArticlesController extends AppController
         }
 
         $this->Flash->error(__('Unable to delete your article!'));
+    }
+
+    /**
+     * Get articles by tag
+     *
+     * @param object $tags tags
+     *
+     * @return void
+     */
+    public function tags(...$tags)
+    {
+        // The 'pass' key is provided by CakePHP and contains all
+        // the passed URL path segments in the request.
+        // $tags = $this->request->getParam('pass');
+
+        $articles = $this->Articles->find('tagged', [
+            'tags' => $tags
+        ]);
+
+        $this->set(compact('tags', 'articles'));
+    }
+
+    /**
+     * Check user login
+     *
+     * @param object $user user
+     *
+     * @return bool
+     */
+    public function isAuthorized($user)
+    {
+        $action = $this->request->getParam('action');
+        if (in_array($action, ['add', 'tags'])) {
+            return true;
+        }
+
+        $slug = $this->request->getParam('pass.0');
+        if (!$slug) {
+            return false;
+        }
+
+        $article = $this->Articles->findBySlug($slug)->first();
+
+        return $article->user_id === $user['id'];
     }
 }

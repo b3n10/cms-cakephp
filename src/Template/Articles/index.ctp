@@ -1,6 +1,7 @@
 <h1>Articles</h1>
 
-<?= $this->Html->link('Add New Article', ['action' =>  'add']); ?>
+<?= $this->Html->link('Add New Article', ['action' =>  'add']); ?> |
+<?= $this->Html->link('View Tags', ['controller' => 'Tags']); ?>
 
 <table>
     <tr>
@@ -27,3 +28,5 @@
     </tr>
     <?php endforeach; ?>
 </table>
+
+<?= $this->Html->link('Logout', ['controller' => 'Users', 'action' => 'logout']); ?>
