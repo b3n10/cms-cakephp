@@ -27,8 +27,10 @@ up the built-in webserver with:
 
 ```bash
 bin/cake server -p 8765
+```
 
 or use custom IP for host
 
+```
 bin/cake server -H 192.168.2.117 -p 8765
 ```
